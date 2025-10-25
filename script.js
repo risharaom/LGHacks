@@ -45,6 +45,56 @@ navBtns.forEach(btn => {
     });
 });
 
+const conversationFlow = [
+    {
+        id: "icebreaker1",
+        question: "Hey there! How are you feeling today?",
+        next: (answer) => {
+            if (answer.toLowerCase().includes("good") || answer.toLowerCase().includes("fine")) return "icebreaker2";
+            return "followup1";
+        }
+    },
+    {
+        id: "icebreaker2",
+        question: "Glad to hear that 😊! How has your week been so far?",
+        next: () => "followup2"
+    },
+    {
+        id: "followup1",
+        question: "I’m sorry to hear that. What’s been on your mind lately?",
+        next: () => "followup2"
+    },
+    {
+        id: "followup2",
+        question: "When you’re stressed or upset, what do you usually do to feel better?",
+        next: (answer) => {
+            if (answer.toLowerCase().includes("friends")) return "followup3_friends";
+            if (answer.toLowerCase().includes("alone")) return "followup3_alone";
+            return "followup3_generic";
+        }
+    },
+    {
+        id: "followup3_friends",
+        question: "That’s great that you have supportive friends! Do you ever feel like they influence your habits or choices?",
+        next: () => "wrapup"
+    },
+    {
+        id: "followup3_alone",
+        question: "It sounds like you prefer handling things on your own. Does that ever get overwhelming?",
+        next: () => "wrapup"
+    },
+    {
+        id: "followup3_generic",
+        question: "That’s one way to handle it. Has that been helping you lately?",
+        next: () => "wrapup"
+    },
+    {
+        id: "wrapup",
+        question: "Thanks for sharing that. Would you like to keep chatting or take a quick mental wellness check?",
+        next: () => null
+    }
+];
+
 // Chat Functionality
 const botResponses = [
     "Thank you for sharing. I'm here to help. Can you tell me more about what's on your mind?",
@@ -75,19 +125,30 @@ function addMessage(text, isUser = false) {
 
 function sendMessage() {
     const message = chatInput.value.trim();
-    
     if (!message) return;
-    
-    // Add user message
+
     addMessage(message, true);
     chatInput.value = '';
-    
-    // Simulate bot response after a delay
-    setTimeout(() => {
-        const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
-        addMessage(randomResponse, false);
-    }, 1000);
+
+    // Find current question
+    const currentQuestion = conversationFlow.find(q => q.id === currentQuestionId);
+
+    // Get next question ID based on answer
+    let nextQuestionId = currentQuestion?.next ? currentQuestion.next(message) : null;
+
+    // If we got a next question, show it
+    if (nextQuestionId) {
+        currentQuestionId = nextQuestionId;
+        const nextQuestion = conversationFlow.find(q => q.id === currentQuestionId);
+        setTimeout(() => addMessage(nextQuestion.question, false), 1000);
+    } else {
+        // End or switch to teammate’s scoring logic
+        setTimeout(() => {
+            addMessage("Thanks for opening up 💬. I’ll pass this info to my analysis system to understand your well-being.", false);
+        }, 1000);
+    }
 }
+
 
 // Send message on button click
 sendBtn.addEventListener('click', sendMessage);
@@ -106,3 +167,7 @@ chatInput.addEventListener('input', () => {
 
 // Initialize
 sendBtn.disabled = true;
+
+setTimeout(() => {
+    addMessage(conversationFlow.find(q => q.id === "icebreaker1").question, false);
+}, 1000);
