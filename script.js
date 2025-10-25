@@ -122,6 +122,7 @@ function addMessage(text, isUser = false) {
     // Scroll to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+let currentQuestionId = "icebreaker1";
 
 function sendMessage() {
     const message = chatInput.value.trim();
