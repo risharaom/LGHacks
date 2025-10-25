@@ -136,6 +136,48 @@ for (const section in wellnessSections) {
 }
 
 // =========================
+// DRUG DETECTION SYSTEM
+// =========================
+const drugKeywords = [
+  "heroin", "cocaine", "weed", "marijuana", "ganja", "hash", "ecstasy", "molly",
+  "lsd", "acid", "vape", "nicotine", "cannabis", "gabapentin", "etizolam",
+  "2-dpmp", "tobacco", "fags", "baccy", "balloons", "nitrous oxide", "fentanyl",
+  "acetylfentanyl", "opioid", "opiate", "drugs"
+];
+
+function detectDrugMention(message) {
+  const lower = message.toLowerCase();
+  return drugKeywords.some(drug => lower.includes(drug));
+}
+
+function notifyDoctor(userMessage) {
+  console.log("🚨 ALERT: Doctor notified about potential drug mention.");
+  console.log("User message:", userMessage);
+
+  // If you want to connect to a backend API later:
+  // fetch('/api/notifyDoctor', {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify({ message: userMessage, timestamp: Date.now() })
+  // });
+}
+
+function respondToDrugMention() {
+  addMessage("It sounds like you mentioned something related to drugs or substances. 💬", false);
+  setTimeout(() => {
+    addMessage("If you're struggling, curious, or seeking help, you're not alone. Here are some trusted, confidential resources:", false);
+    setTimeout(() => {
+      addMessage(
+        `📞 SAMHSA Helpline: 1-800-662-4357  
+💬 Crisis Text Line: Text **HELLO** to 741741  
+🌐 Visit [findtreatment.gov](https://findtreatment.gov) for free local help.`,
+        false
+      );
+    }, 1000);
+  }, 700);
+}
+
+// =========================
 // CHAT HANDLERS
 // =========================
 let currentQuestionId = "icebreaker1";
@@ -152,8 +194,7 @@ function addMessage(text, isUser = false) {
   bubbleDiv.className = 'message-bubble';
 
   const p = document.createElement('p');
-  p.textContent = text;
-
+  p.innerHTML = text; // allow links
   bubbleDiv.appendChild(p);
   messageDiv.appendChild(bubbleDiv);
   chatMessages.appendChild(messageDiv);
@@ -169,6 +210,13 @@ function sendMessage() {
 
   addMessage(message, true);
   chatInput.value = '';
+
+  // Check for drug mention
+  if (detectDrugMention(message)) {
+    respondToDrugMention();
+    notifyDoctor(message);
+    return;
+  }
 
   if (inWellnessMode) {
     handleWellnessResponse(message);
